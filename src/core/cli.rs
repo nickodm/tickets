@@ -14,7 +14,7 @@ const STYLES: Styles = Styles::styled()
 pub struct Cli {
     /// Specify the database's path.
     #[arg(long)]
-    pub path: Option<PathBuf>,
+    pub database: Option<PathBuf>,
 
     #[command(subcommand)]
     pub command: Option<Commands>,

@@ -14,7 +14,7 @@ fn main() -> Result<()> {
         bail!("Use a command first.")
     }
 
-    let path = match args.path {
+    let path = match args.database {
         Some(path) => path,
         None => PathBuf::from("tickets.db"),
     };
