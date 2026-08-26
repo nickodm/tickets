@@ -3,6 +3,7 @@ mod core;
 use anyhow::{Result, bail};
 use clap::Parser;
 use core::{cli::*, *};
+use std::fs;
 use std::path::PathBuf;
 use thousands::Separable;
 
@@ -74,6 +75,15 @@ fn main() -> Result<()> {
                 }
             }
         },
+
+        Commands::Csv { path } => {
+            let c = db.to_csv()?;
+
+            match path {
+                Some(dst) => fs::write(dst, c)?,
+                None => println!("{}", c),
+            }
+        }
     }
 
     Ok(())

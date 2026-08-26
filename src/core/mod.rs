@@ -205,4 +205,23 @@ impl Database {
             None => Ok(None),
         }
     }
+
+    pub fn to_csv(self: &Self) -> Result<String> {
+        let mut wtr = csv::Writer::from_writer(Vec::new());
+
+        wtr.write_record(["id", "monto", "empresa"])?;
+
+        let tickets = self.get_tickets()?;
+
+        for ticket in tickets {
+            let id = ticket.id.to_string();
+            let amount = ticket.amount.to_string();
+            let company_name = ticket.company.name.clone();
+
+            wtr.write_record(&[id, amount, company_name])?;
+        }
+
+        let buf = wtr.into_inner()?;
+        Ok(String::from_utf8(buf)?)
+    }
 }

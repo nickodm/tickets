@@ -33,6 +33,9 @@ pub enum Commands {
 
     /// Manage companies in the database
     Companies(CompaniesArgs),
+
+    /// Export the database as CSV
+    Csv { path: Option<PathBuf> },
 }
 
 #[derive(Args)]
