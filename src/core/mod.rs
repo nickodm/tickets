@@ -43,16 +43,6 @@ pub struct Ticket {
     amount: u16,
 }
 
-impl Display for Ticket {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "===== TICKET =====")?;
-        writeln!(f, "ID      : {}", self.id)?;
-        writeln!(f, "Amount  : {}", self.amount.separate_with_dots())?;
-        writeln!(f, "Company : {}", self.company)?;
-        Ok(())
-    }
-}
-
 impl Ticket {
     pub fn new(id: u16, company: Company, amount: u16) -> Self {
         Self {
@@ -60,6 +50,26 @@ impl Ticket {
             company,
             amount,
         }
+    }
+
+    pub fn fmt_line(self: &Self) -> String {
+        format!(
+            "[{:>3}] {} ${}",
+            self.id,
+            &self.company.name,
+            self.amount.separate_with_dots()
+        )
+    }
+
+    pub fn fmt_block(self: &Self) -> String {
+        let mut buf = String::new();
+
+        buf.push_str("===== TICKET =====\n");
+        buf.push_str(&format!("ID      : {}\n", self.id));
+        buf.push_str(&format!("Amount  : {}\n", self.amount.separate_with_dots()));
+        buf.push_str(&format!("Company : {}", self.company.name));
+
+        buf
     }
 }
 

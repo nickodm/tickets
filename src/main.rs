@@ -49,14 +49,14 @@ fn main() -> Result<()> {
 
             let ticket = db.add_ticket(amount, company)?;
 
-            println!("Added ticket:\n{}", ticket);
+            println!("Added ticket:\n{}", ticket.fmt_block());
         }
 
         Commands::List => {
             let tickets = db.get_tickets()?;
 
             for ticket in tickets {
-                println!("{}", ticket);
+                println!("{}", ticket.fmt_line());
             }
         }
 
