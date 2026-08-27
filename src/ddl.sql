@@ -1,12 +1,12 @@
 CREATE TABLE companies (
-    id TINYINT UNSIGNED PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE tickets (
-    id SMALLINT UNSIGNED PRIMARY KEY,
-    id_company TINYINT UNSIGNED,
-    amount SMALLINT UNSIGNED NOT NULL,
+    id INTEGER PRIMARY KEY,
+    id_company INTEGER,
+    amount INTEGER NOT NULL,
 
     CONSTRAINT fk_ticket__companies FOREIGN KEY (id_company) REFERENCES companies(id)
 );
