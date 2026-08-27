@@ -1,14 +1,26 @@
 mod core;
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use clap::Parser;
 use core::{cli::*, *};
+use directories::ProjectDirs;
 use std::fs;
-use std::path::PathBuf;
 use thousands::Separable;
 
 fn main() -> Result<()> {
     let args = Cli::parse();
+
+    let dirs = ProjectDirs::from("com", "Nicolas Miranda", "tickets")
+        .context("Unable to get SO directories.")?;
+
+    let config_dir = dirs.config_dir();
+
+    if !config_dir.try_exists()? {
+        fs::create_dir(config_dir)?;
+    }
+
+    let conf = config::read_config(config_dir.join("config.toml"))
+        .context("Unable to read config file.")?;
 
     if let None = &args.command {
         bail!("Use a command first.")
@@ -16,8 +28,12 @@ fn main() -> Result<()> {
 
     let path = match args.database {
         Some(path) => path,
-        None => PathBuf::from("tickets.db"),
+        None => dirs.data_dir().join("tickets.db"),
     };
+
+    if !path.try_exists()? {
+        bail!("The path \"{}\" doesn't exists.", path.display());
+    }
 
     let db = Database::new(path)?;
 
@@ -48,9 +64,19 @@ fn main() -> Result<()> {
             let count = db.count_tickets()?;
             let total = db.get_total_amount()?;
 
-            println!("===== SUMMARY =====");
+            println!("======= SUMMARY =======");
             println!("Ticket count : {}", count.separate_with_dots());
             println!("Total amount : ${}", total.separate_with_dots());
+
+            let goal = conf.goal;
+
+            if goal != 0 {
+                println!("Goal         : ${}", goal.separate_with_dots());
+                let difference = goal - total;
+                println!("Difference   : ${}", difference.separate_with_dots());
+                let percent: f64 = (total as f64 / goal as f64) * 100f64;
+                println!("Percentage   : {:>3.2}%", percent);
+            }
         }
 
         Commands::Companies(subcmd) => match subcmd.subcmd {

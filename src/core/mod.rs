@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use thousands::Separable;
 
 pub mod cli;
+pub mod config;
 
 #[derive(Debug)]
 pub struct Company {
