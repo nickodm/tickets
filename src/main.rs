@@ -14,6 +14,7 @@ fn main() -> Result<()> {
         .context("Unable to get SO directories.")?;
 
     let config_dir = dirs.config_dir();
+    let data_dir = dirs.data_dir();
 
     if !config_dir.try_exists()? {
         fs::create_dir(config_dir)?;
@@ -27,13 +28,21 @@ fn main() -> Result<()> {
     }
 
     let path = match args.database {
-        Some(path) => path,
-        None => dirs.data_dir().join("tickets.db"),
-    };
+        Some(path) => {
+            if path.try_exists()? {
+                path
+            } else {
+                bail!("Path doesn't exists.")
+            }
+        }
+        None => {
+            if !data_dir.try_exists()? {
+                fs::create_dir(data_dir)?;
+            }
 
-    if !path.try_exists()? {
-        bail!("The path \"{}\" doesn't exists.", path.display());
-    }
+            data_dir.join("tickets.db")
+        }
+    };
 
     let db = Database::new(path)?;
 
