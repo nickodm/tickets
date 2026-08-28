@@ -66,7 +66,10 @@ impl Ticket {
 
         buf.push_str("===== TICKET =====\n");
         buf.push_str(&format!("ID      : {}\n", self.id));
-        buf.push_str(&format!("Amount  : {}\n", self.amount.separate_with_dots()));
+        buf.push_str(&format!(
+            "Amount  : ${}\n",
+            self.amount.separate_with_dots()
+        ));
         buf.push_str(&format!("Company : {}", self.company.name));
 
         buf

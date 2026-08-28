@@ -107,6 +107,11 @@ fn main() -> Result<()> {
             }
         }
 
+        Commands::Show { id } => match db.get_ticket(id)? {
+            Some(ticket) => println!("{}", ticket.fmt_block()),
+            None => bail!("There are no ticket with that ID."),
+        },
+
         Commands::List => {
             let tickets = db.get_tickets()?;
 

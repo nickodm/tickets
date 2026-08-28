@@ -45,6 +45,12 @@ pub enum Commands {
         to: Option<u16>,
     },
 
+    /// Show a ticket in the database.
+    Show {
+        /// ID of the ticket to show.
+        id: u16,
+    },
+
     /// List tickets in the database
     List,
 
