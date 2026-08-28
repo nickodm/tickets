@@ -1,7 +1,7 @@
 use anyhow::Result;
 use rusqlite::{Connection, params};
 use std::fmt::Display;
-use std::path::PathBuf;
+use std::path::Path;
 use thousands::Separable;
 
 pub mod cli;
@@ -73,6 +73,7 @@ impl Ticket {
     }
 }
 
+/// SQL script to initialize the database
 const INITIALIZE_SQL_QUERY: &str = include_str!("../ddl.sql");
 
 pub struct Database {
@@ -80,23 +81,16 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn new(path: PathBuf) -> Result<Self> {
-        let existed = path.exists();
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let path = path.as_ref();
 
         let s = Self {
-            conn: Connection::open(&path)?,
+            conn: Connection::open(path)?,
         };
 
-        if !existed {
-            s.initialize()?;
-        }
+        s.conn.execute_batch(INITIALIZE_SQL_QUERY)?;
 
         Ok(s)
-    }
-
-    fn initialize(self: &Self) -> Result<()> {
-        self.conn.execute_batch(INITIALIZE_SQL_QUERY)?;
-        Ok(())
     }
 
     /// Add a ticket to the database and return it.
