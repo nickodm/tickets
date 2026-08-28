@@ -35,6 +35,16 @@ pub enum Commands {
         times: usize,
     },
 
+    /// Remove a ticket from the database.
+    Remove {
+        /// ID of the ticket to remove.
+        id: u16,
+
+        /// When provided, remove all the tickets from `id` to `to`.
+        #[arg(long)]
+        to: Option<u16>,
+    },
+
     /// List tickets in the database
     List,
 

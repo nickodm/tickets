@@ -1,5 +1,5 @@
 use anyhow::Result;
-use rusqlite::{Connection, params};
+use rusqlite::{Connection, OptionalExtension, params};
 use std::fmt::Display;
 use std::path::Path;
 use thousands::Separable;
@@ -103,6 +103,32 @@ impl Database {
 
         let ticket = Ticket::new(id, company, amount);
         Ok(ticket)
+    }
+
+    pub fn get_ticket(self: &Self, id: u16) -> Result<Option<Ticket>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT t.amount, c.id, c.name FROM tickets AS t
+            INNER JOIN companies AS c ON c.id = t.id_company WHERE t.id = ?1",
+        )?;
+
+        let result = stmt
+            .query_row(params![id], |row| {
+                let amount: u16 = row.get(0)?;
+                let company_id: u8 = row.get(1)?;
+                let company_name: String = row.get(2)?;
+
+                let company = Company::new(company_id, company_name);
+                Ok(Ticket::new(id, company, amount))
+            })
+            .optional()?;
+
+        Ok(result)
+    }
+
+    pub fn remove_ticket(self: &Self, id: u16) -> Result<bool> {
+        let mut stmt = self.conn.prepare("DELETE FROM tickets WHERE id = ?1")?;
+        let rows = stmt.execute(params![id])?;
+        Ok(rows >= 1)
     }
 
     /// Count all the tickets in the database.

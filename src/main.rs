@@ -74,6 +74,39 @@ fn main() -> Result<()> {
             }
         }
 
+        Commands::Remove { id, to } => {
+            let to = to.unwrap_or(id);
+
+            if to < id {
+                bail!("`to` must be greater than `id`.");
+            }
+
+            let range = to - id + 1;
+
+            if range > 1 {
+                println!("Removed tickets:");
+            } else {
+                println!("Removed ticket:");
+            }
+
+            for i in id..=to {
+                let ticket = match db.get_ticket(i)? {
+                    Some(ticket) => ticket,
+                    None => bail!("Ticket with that ID doesn't exists."),
+                };
+
+                if !db.remove_ticket(i)? {
+                    bail!("Unable to remove that ticket.");
+                }
+
+                if range > 1 {
+                    println!("{}", ticket.fmt_line());
+                } else {
+                    println!("{}", ticket.fmt_block());
+                }
+            }
+        }
+
         Commands::List => {
             let tickets = db.get_tickets()?;
 
