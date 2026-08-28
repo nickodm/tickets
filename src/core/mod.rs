@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::Result;
 use rusqlite::{Connection, params};
 use std::fmt::Display;
 use std::path::PathBuf;
@@ -99,30 +99,16 @@ impl Database {
         Ok(())
     }
 
-    pub fn get_last_id(self: &Self) -> Result<u16> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT COALESCE(MAX(id), 0) FROM tickets")?;
-
-        let query: u16 = stmt.query_one(params![], |row| row.get(0))?;
-
-        Ok(query)
-    }
-
     /// Add a ticket to the database and return it.
     pub fn add_ticket(self: &Self, amount: u16, company: Company) -> Result<Ticket> {
-        let id: u16 = self.get_last_id()? + 1;
-        let ticket: Ticket = Ticket::new(id, company, amount);
+        let id = self.conn.query_row(
+            "INSERT INTO tickets (amount, id_company) VALUES (?1, ?2) RETURNING id",
+            params![amount, company.id],
+            |row| row.get(0),
+        )?;
 
-        let result = self.conn.execute(
-            "INSERT INTO tickets (id, amount, id_company) VALUES (?1, ?2, ?3)",
-            params![ticket.id, ticket.amount, ticket.company.id],
-        );
-
-        match result {
-            Ok(_) => Ok(ticket),
-            Err(err) => bail!("Unable to write in the database: {}", err),
-        }
+        let ticket = Ticket::new(id, company, amount);
+        Ok(ticket)
     }
 
     /// Count all the tickets in the database.
@@ -178,26 +164,16 @@ impl Database {
         Ok(companies)
     }
 
-    fn get_company_available_id(self: &Self) -> Result<u8> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT COALESCE(MAX(id), 0) FROM companies")?;
-
-        let max: u8 = stmt.query_one([], |row| row.get(0))?;
-        Ok(max + 1)
-    }
-
     pub fn add_company<S: Into<String>>(self: &Self, name: S) -> Result<Company> {
-        let id = self.get_company_available_id()?;
         let name = name.into();
-        let company = Company::new(id, name);
 
-        self.conn.execute(
-            "INSERT INTO companies (id, name) VALUES (?1, ?2)",
-            params![company.id, company.name],
+        let id = self.conn.query_row(
+            "INSERT INTO companies (name) VALUES (?1) RETURNING id",
+            params![&name],
+            |row| row.get(0),
         )?;
 
-        Ok(company)
+        Ok(Company::new(id, name))
     }
 
     pub fn get_company_by_name<S: Into<String>>(self: &Self, name: S) -> Result<Option<Company>> {
