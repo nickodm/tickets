@@ -50,15 +50,28 @@ fn main() -> Result<()> {
         Commands::Add {
             amount,
             company_name,
+            times,
         } => {
             let company = match db.get_company_by_name(company_name)? {
                 Some(company) => company,
-                None => bail!("Error: That company is not in the database."),
+                None => bail!("That company is not in the database."),
             };
 
-            let ticket = db.add_ticket(amount, company)?;
+            if times > 1 {
+                println!("Added tickets:");
+            } else {
+                println!("Added ticket:");
+            }
 
-            println!("Added ticket:\n{}", ticket.fmt_block());
+            for _ in 0..times {
+                let ticket = db.add_ticket(amount, company.clone())?;
+
+                if times > 1 {
+                    println!("{}", ticket.fmt_line());
+                } else {
+                    println!("{}", ticket.fmt_block());
+                }
+            }
         }
 
         Commands::List => {

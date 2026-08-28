@@ -30,6 +30,9 @@ pub enum Commands {
         /// Ticket's company's name.
         #[arg(short, long)]
         company_name: String,
+        /// How many tickets add with this fields.
+        #[arg(short, long, default_value_t = 1)]
+        times: usize,
     },
 
     /// List tickets in the database

@@ -7,7 +7,7 @@ use thousands::Separable;
 pub mod cli;
 pub mod config;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Company {
     id: u8,
     name: String,
