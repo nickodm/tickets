@@ -79,4 +79,10 @@ pub enum CompaniesCommands {
     Add { name: String },
     /// List all the companies in the database
     List,
+
+    /// Remove a company from the database
+    Remove {
+        /// The ID of the company to remove
+        id: u8,
+    },
 }

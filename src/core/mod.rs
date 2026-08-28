@@ -187,6 +187,28 @@ impl Database {
         Ok(companies)
     }
 
+    pub fn get_company(self: &Self, id: u8) -> Result<Option<Company>> {
+        Ok(self
+            .conn
+            .query_row(
+                "SELECT name FROM companies WHERE id = ?1",
+                params![id],
+                |row| {
+                    let name: String = row.get(0)?;
+                    Ok(Company::new(id, name))
+                },
+            )
+            .optional()?)
+    }
+
+    pub fn remove_company(self: &Self, id: u8) -> Result<bool> {
+        let rows = self
+            .conn
+            .execute("DELETE FROM companies WHERE id = ?1", params![id])?;
+
+        Ok(rows >= 1)
+    }
+
     pub fn add_company<S: Into<String>>(self: &Self, name: S) -> Result<Company> {
         let name = name.into();
 

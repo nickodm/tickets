@@ -148,6 +148,20 @@ fn main() -> Result<()> {
                     company.get_id()
                 );
             }
+
+            CompaniesCommands::Remove { id } => {
+                let company = match db.get_company(id)? {
+                    Some(company) => company,
+                    None => bail!("There is no company with that ID."),
+                };
+
+                if db.remove_company(id)? {
+                    println!("Removed company \"{}\".", company.get_name());
+                } else {
+                    bail!("Unable to remove company.");
+                }
+            }
+
             CompaniesCommands::List => {
                 let companies = db.get_companies()?;
 
