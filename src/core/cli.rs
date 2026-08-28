@@ -10,7 +10,7 @@ const STYLES: Styles = Styles::styled()
     .literal(AnsiColor::Green.on_default());
 
 #[derive(Parser)]
-#[command(name = "boletos", styles = STYLES)]
+#[command(name = "boletos", version = "0.1.0", styles = STYLES)]
 pub struct Cli {
     /// Specify the database's path.
     #[arg(long)]
@@ -23,7 +23,14 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// Add a ticket to the database
-    Add { amount: u16, company_name: String },
+    Add {
+        /// Ticket's amount.
+        #[arg(short, long)]
+        amount: u16,
+        /// Ticket's company's name.
+        #[arg(short, long)]
+        company_name: String,
+    },
 
     /// List tickets in the database
     List,
