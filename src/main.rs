@@ -4,7 +4,7 @@ use anyhow::{Context, Result, bail};
 use clap::Parser;
 use core::{cli::*, *};
 use directories::ProjectDirs;
-use std::fs;
+use std::{fs, io::Write};
 use thousands::Separable;
 
 fn main() -> Result<()> {
@@ -44,7 +44,7 @@ fn main() -> Result<()> {
         }
     };
 
-    let db = Database::new(path)?;
+    let db = Database::new(&path)?;
 
     match args.command.unwrap() {
         Commands::Add {
@@ -130,6 +130,25 @@ fn main() -> Result<()> {
             match path {
                 Some(dst) => fs::write(dst, c)?,
                 None => println!("{}", c),
+            }
+        }
+
+        Commands::Drop => {
+            let stdin = std::io::stdin();
+            let mut answer = String::new();
+
+            print!("Are you sure you want to DROP the database? [y/n]: ");
+            std::io::stdout().flush()?;
+            stdin.read_line(&mut answer)?;
+            let answer = answer.replace("\n", "").to_lowercase();
+
+            match answer.as_str() {
+                "y" | "yes" => {
+                    fs::remove_file(&path).context("Unable to drop the database.")?;
+                    println!("Dropped database.");
+                }
+                "n" | "no" => println!("Aborted."),
+                a => bail!("Invalid answer: \"{}\", please use [y/n].", a),
             }
         }
     }

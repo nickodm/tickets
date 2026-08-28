@@ -46,6 +46,9 @@ pub enum Commands {
 
     /// Export the database as CSV
     Csv { path: Option<PathBuf> },
+
+    /// Drop the database. CANNOT BE UNDONE!
+    Drop,
 }
 
 #[derive(Args)]
