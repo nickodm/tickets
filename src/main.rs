@@ -121,7 +121,7 @@ fn main() -> Result<()> {
             }
         }
 
-        Commands::Summary => {
+        Commands::Summary { detailed } => {
             let count = db.count_tickets()?;
             let total = db.get_total_amount()?;
 
@@ -146,8 +146,10 @@ fn main() -> Result<()> {
             cprintln!("<blue,s>======= COMPANIES =======</>");
             println!("{}", db.pivot_companies()?);
 
-            cprintln!("<blue,s>======== DETAILS ========</>");
-            println!("{}", db.detail_tickets()?);
+            if detailed {
+                cprintln!("<blue,s>======== DETAILS ========</>");
+                println!("{}", db.detail_tickets()?);
+            }
         }
 
         Commands::Companies(subcmd) => match subcmd.subcmd {
@@ -214,7 +216,7 @@ fn main() -> Result<()> {
                 a => bail!("Invalid answer: \"{}\", please use [y/n].", a),
             }
         }
-    }
+    };
 
     Ok(())
 }

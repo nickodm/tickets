@@ -55,7 +55,11 @@ pub enum Commands {
     List,
 
     /// Summary all the tickets
-    Summary,
+    Summary {
+        /// Whether to show detailed information about tickets.
+        #[arg(short, long, default_value_t = false)]
+        detailed: bool,
+    },
 
     /// Manage companies in the database
     Companies(CompaniesArgs),
