@@ -2,6 +2,7 @@ mod core;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
+use color_print::cprintln;
 use core::{cli::*, *};
 use directories::ProjectDirs;
 use std::{fs, io::Write};
@@ -124,24 +125,28 @@ fn main() -> Result<()> {
             let count = db.count_tickets()?;
             let total = db.get_total_amount()?;
 
-            println!("======== SUMMARY ========");
-            println!("Ticket count : {}", count.separate_with_dots());
-            println!("Total amount : ${}", total.separate_with_dots());
+            cprintln!("<blue,s>======== GENERAL ========</>");
+            cprintln!("<green,s>Ticket count :</> {}", count.separate_with_dots());
+            cprintln!("<green,s>Total amount :</> ${}", total.separate_with_dots());
 
             let goal = conf.goal;
 
             if goal != 0 {
-                println!("Goal         : ${}", goal.separate_with_dots());
-                let difference = goal - total;
-                println!("Difference   : ${}", difference.separate_with_dots());
+                cprintln!("<blue,s>========= GOAL ==========</>");
+                cprintln!("<green,s>Goal         :</> ${}", goal.separate_with_dots());
+                let difference = (goal - total) as isize;
+                cprintln!(
+                    "<green,s>Difference   :</> ${}",
+                    difference.separate_with_dots()
+                );
                 let percent: f64 = (total as f64 / goal as f64) * 100f64;
-                println!("Percentage   : {:>3.2}%", percent);
+                cprintln!("<green,s>Percentage   :</> {:>3.1}%", percent);
             }
 
-            println!("======= COMPANY SUMMARY =======");
+            cprintln!("<blue,s>======= COMPANIES =======</>");
             println!("{}", db.pivot_companies()?);
 
-            println!("======= DETAIL TICKETS ========");
+            cprintln!("<blue,s>======== DETAILS ========</>");
             println!("{}", db.detail_tickets()?);
         }
 

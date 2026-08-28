@@ -261,6 +261,7 @@ impl Database {
     pub fn pivot_companies(self: &Self) -> Result<String> {
         let mut table = Table::new("{:<}  {:>}  {:^}");
 
+        // TODO: Implement colors
         table.add_row(
             Row::new()
                 .with_cell("COMPANY")
@@ -298,6 +299,7 @@ impl Database {
     pub fn detail_tickets(self: &Self) -> Result<String> {
         let mut table = Table::new("{:>}  {:<}  {:^}");
 
+        // TODO: Implement colors
         table.add_row(
             Row::new()
                 .with_cell("AMOUNT")
