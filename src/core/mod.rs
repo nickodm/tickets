@@ -2,6 +2,7 @@ use anyhow::Result;
 use rusqlite::{Connection, OptionalExtension, params};
 use std::fmt::Display;
 use std::path::Path;
+use tabular::{Row, Table};
 use thousands::Separable;
 
 pub mod cli;
@@ -255,5 +256,78 @@ impl Database {
 
         let buf = wtr.into_inner()?;
         Ok(String::from_utf8(buf)?)
+    }
+
+    pub fn pivot_companies(self: &Self) -> Result<String> {
+        let mut table = Table::new("{:<}  {:>}  {:^}");
+
+        table.add_row(
+            Row::new()
+                .with_cell("COMPANY")
+                .with_cell("AMOUNT")
+                .with_cell("COUNT"),
+        );
+
+        let mut stmt = self.conn.prepare(
+            "
+            SELECT c.name, SUM(t.amount), COUNT(t.id) FROM tickets AS t
+                INNER JOIN companies AS c ON c.id = t.id_company
+                GROUP BY c.name
+                ORDER BY sum(t.amount) DESC;
+            ",
+        )?;
+
+        let mut rows = stmt.query(params![])?;
+
+        while let Some(row) = rows.next()? {
+            let company_name: String = row.get(0)?;
+            let amount: isize = row.get(1)?;
+            let count: isize = row.get(2)?;
+
+            table.add_row(
+                Row::new()
+                    .with_cell(company_name)
+                    .with_cell(amount.separate_with_dots())
+                    .with_cell(count),
+            );
+        }
+
+        Ok(table.to_string())
+    }
+
+    pub fn detail_tickets(self: &Self) -> Result<String> {
+        let mut table = Table::new("{:>}  {:<}  {:^}");
+
+        table.add_row(
+            Row::new()
+                .with_cell("AMOUNT")
+                .with_cell("COMPANY")
+                .with_cell("COUNT"),
+        );
+
+        let mut stmt = self.conn.prepare(
+            "
+            SELECT t.amount, c.name, COUNT(t.id) FROM tickets AS t
+                INNER JOIN companies AS c ON c.id = t.id_company
+                GROUP BY t.amount, c.name ORDER BY COUNT(t.id) DESC
+            ",
+        )?;
+
+        let mut rows = stmt.query(params![])?;
+
+        while let Some(row) = rows.next()? {
+            let amount: isize = row.get(0)?;
+            let name: String = row.get(1)?;
+            let count: isize = row.get(2)?;
+
+            table.add_row(
+                Row::new()
+                    .with_cell(amount.separate_with_dots())
+                    .with_cell(name)
+                    .with_cell(count),
+            );
+        }
+
+        Ok(table.to_string())
     }
 }

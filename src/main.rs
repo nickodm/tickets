@@ -124,7 +124,7 @@ fn main() -> Result<()> {
             let count = db.count_tickets()?;
             let total = db.get_total_amount()?;
 
-            println!("======= SUMMARY =======");
+            println!("======== SUMMARY ========");
             println!("Ticket count : {}", count.separate_with_dots());
             println!("Total amount : ${}", total.separate_with_dots());
 
@@ -137,6 +137,12 @@ fn main() -> Result<()> {
                 let percent: f64 = (total as f64 / goal as f64) * 100f64;
                 println!("Percentage   : {:>3.2}%", percent);
             }
+
+            println!("======= COMPANY SUMMARY =======");
+            println!("{}", db.pivot_companies()?);
+
+            println!("======= DETAIL TICKETS ========");
+            println!("{}", db.detail_tickets()?);
         }
 
         Commands::Companies(subcmd) => match subcmd.subcmd {
