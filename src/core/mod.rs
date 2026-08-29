@@ -1,8 +1,8 @@
 use anyhow::Result;
+use comfy_table::{Attribute, Cell, CellAlignment, Color, Table, TableStyle};
 use rusqlite::{Connection, OptionalExtension, params};
 use std::fmt::Display;
 use std::path::Path;
-use tabular::{Row, Table};
 use thousands::Separable;
 
 pub mod cli;
@@ -79,6 +79,8 @@ impl Ticket {
 
 /// SQL script to initialize the database
 const INITIALIZE_SQL_QUERY: &str = include_str!("../ddl.sql");
+
+const TABLE_STYLE: TableStyle = comfy_table::presets::NOTHING;
 
 pub struct Database {
     conn: Connection,
@@ -258,16 +260,28 @@ impl Database {
         Ok(String::from_utf8(buf)?)
     }
 
-    pub fn pivot_companies(self: &Self) -> Result<String> {
-        let mut table = Table::new("{:<}  {:>}  {:^}");
+    pub fn pivot_companies(self: &Self) -> Result<Table> {
+        let mut table = Table::new();
 
-        // TODO: Implement colors
-        table.add_row(
-            Row::new()
-                .with_cell("COMPANY")
-                .with_cell("AMOUNT")
-                .with_cell("COUNT"),
-        );
+        table.load_style(TABLE_STYLE);
+
+        let mut header: Vec<Cell> = Vec::new();
+
+        for h in vec!["COMPANY", "AMOUNT", "COUNT"] {
+            header.push(Cell::new(h).fg(Color::Green).add_attribute(Attribute::Bold))
+        }
+
+        table.add_row(header);
+
+        table
+            .column_mut(1)
+            .unwrap()
+            .set_cell_alignment(CellAlignment::Right);
+
+        table
+            .column_mut(2)
+            .unwrap()
+            .set_cell_alignment(CellAlignment::Center);
 
         let mut stmt = self.conn.prepare(
             "
@@ -285,27 +299,44 @@ impl Database {
             let amount: isize = row.get(1)?;
             let count: isize = row.get(2)?;
 
-            table.add_row(
-                Row::new()
-                    .with_cell(company_name)
-                    .with_cell(amount.separate_with_dots())
-                    .with_cell(count),
+            table.add_row(vec![
+                company_name,
+                format!("${:>7}", amount.separate_with_dots()),
+                count.to_string(),
+            ]);
+        }
+
+        Ok(table)
+    }
+
+    pub fn detail_tickets(self: &Self) -> Result<Table> {
+        let mut table = Table::new();
+
+        table.load_style(TABLE_STYLE);
+
+        const HEADER_FG_COLOR: Color = Color::Green;
+
+        let mut header: Vec<Cell> = Vec::new();
+
+        for h in vec!["AMOUNT", "COMPANY", "COUNT"] {
+            header.push(
+                Cell::new(h)
+                    .fg(HEADER_FG_COLOR)
+                    .add_attribute(Attribute::Bold),
             );
         }
 
-        Ok(table.to_string())
-    }
+        table.set_header(header);
 
-    pub fn detail_tickets(self: &Self) -> Result<String> {
-        let mut table = Table::new("{:>}  {:<}  {:^}");
+        table
+            .column_mut(0)
+            .unwrap()
+            .set_cell_alignment(CellAlignment::Right);
 
-        // TODO: Implement colors
-        table.add_row(
-            Row::new()
-                .with_cell("AMOUNT")
-                .with_cell("COMPANY")
-                .with_cell("COUNT"),
-        );
+        table
+            .column_mut(2)
+            .unwrap()
+            .set_cell_alignment(CellAlignment::Center);
 
         let mut stmt = self.conn.prepare(
             "
@@ -322,14 +353,13 @@ impl Database {
             let name: String = row.get(1)?;
             let count: isize = row.get(2)?;
 
-            table.add_row(
-                Row::new()
-                    .with_cell(amount.separate_with_dots())
-                    .with_cell(name)
-                    .with_cell(count),
-            );
+            table.add_row(vec![
+                format!("${:>5}", amount.separate_with_dots()),
+                name,
+                count.to_string(),
+            ]);
         }
 
-        Ok(table.to_string())
+        Ok(table)
     }
 }
