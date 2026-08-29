@@ -8,6 +8,30 @@ use directories::ProjectDirs;
 use std::{fs, io::Write};
 use thousands::Separable;
 
+/// Ask the user for confirmation before doing something.
+/// ```rust
+/// if confirm("Are you sure you want to do this?")? {
+///     // do something good
+/// } else {
+///     // do something bad
+/// }
+/// ```
+fn confirm<S: std::fmt::Display>(prompt: S) -> Result<bool> {
+    let stdin = std::io::stdin();
+    let mut answer = String::new();
+
+    print!("{} [y/n]: ", prompt);
+    std::io::stdout().flush()?;
+    stdin.read_line(&mut answer)?;
+    let answer = answer.replace("\n", "").to_lowercase();
+
+    match answer.as_str() {
+        "y" | "yes" => Ok(true),
+        "n" | "no" => Ok(false),
+        a => bail!("Invalid answer: \"{}\", please use [y/n].", a),
+    }
+}
+
 fn main() -> Result<()> {
     let args = Cli::parse();
 
@@ -199,22 +223,22 @@ fn main() -> Result<()> {
         }
 
         Commands::Drop => {
-            let stdin = std::io::stdin();
-            let mut answer = String::new();
-
-            print!("Are you sure you want to DROP the database? [y/n]: ");
-            std::io::stdout().flush()?;
-            stdin.read_line(&mut answer)?;
-            let answer = answer.replace("\n", "").to_lowercase();
-
-            match answer.as_str() {
-                "y" | "yes" => {
-                    fs::remove_file(&path).context("Unable to drop the database.")?;
-                    println!("Dropped database.");
-                }
-                "n" | "no" => println!("Aborted."),
-                a => bail!("Invalid answer: \"{}\", please use [y/n].", a),
+            if confirm("Are you sure you want to DROP the database?")? {
+                fs::remove_file(&path).context("Unable to drop the database.")?;
+                println!("Dropped database.");
+            } else {
+                println!("Aborted.");
             }
+        }
+
+        Commands::Backup { output } => {
+            if output.try_exists()? && !confirm("Output file already exists. override?")? {
+                println!("Aborted.");
+                return Ok(());
+            }
+
+            fs::copy(&path, &output)?;
+            println!("Database backed up to '{}'.", output.display());
         }
     };
 

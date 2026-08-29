@@ -13,6 +13,7 @@ A fast, lightweight CLI ticket and expense/revenue tracker written in Rust, powe
 - **Flexible Ticket Removal**: Remove a single ticket or a range of IDs (`--to`).
 - **Visual Summaries & Analytics**: View total counts, aggregated sums, breakdown by company, and itemized frequency tables using colored ASCII tables.
 - **Goal Tracking**: Set a target financial goal in `config.toml` to track differences and completion percentage.
+- **Database Backup**: Create quick backups of your SQLite database with override protection.
 - **CSV Export**: Export all database records to CSV via stdout or directly to a file.
 - **SQLite Storage**: Zero-configuration, local database created automatically under standard OS data directories or a custom path.
 
@@ -57,6 +58,7 @@ Commands:
   companies  Manage companies in the database
   csv        Export the database as CSV
   drop       Drop the database. CANNOT BE UNDONE!
+  backup     Create a backup of the database
   help       Print this message or the help of the given subcommand(s)
 
 Options:
@@ -151,7 +153,17 @@ Use a custom SQLite database file:
 tickets --database /path/to/custom.db list
 ```
 
-### 8. Dropping the Database
+### 8. Backing Up the Database
+
+Create a backup copy of the current database file:
+
+```bash
+tickets backup backup_tickets.db
+```
+
+> If the destination file already exists, you will be prompted for confirmation before overwriting.
+
+### 9. Dropping the Database
 
 Delete the database file with confirmation prompt:
 

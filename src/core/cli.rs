@@ -69,6 +69,12 @@ pub enum Commands {
 
     /// Drop the database. CANNOT BE UNDONE!
     Drop,
+
+    /// Create a backup of the database.
+    Backup {
+        /// Path to write the output file
+        output: PathBuf,
+    },
 }
 
 #[derive(Args)]
