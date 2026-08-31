@@ -78,7 +78,7 @@ impl Ticket {
 }
 
 /// SQL script to initialize the database
-const INITIALIZE_SQL_QUERY: &str = include_str!("../ddl.sql");
+const SQLITE_DDL: &str = include_str!("../ddl.sql");
 
 const TABLE_STYLE: TableStyle = comfy_table::presets::NOTHING;
 
@@ -94,7 +94,7 @@ impl Database {
             conn: Connection::open(path)?,
         };
 
-        s.conn.execute_batch(INITIALIZE_SQL_QUERY)?;
+        s.conn.execute_batch(SQLITE_DDL)?;
 
         Ok(s)
     }
@@ -260,7 +260,7 @@ impl Database {
         Ok(String::from_utf8(buf)?)
     }
 
-    pub fn pivot_companies(self: &Self) -> Result<Table> {
+    pub fn summary_companies(self: &Self) -> Result<Table> {
         let mut table = Table::new();
 
         table.load_style(TABLE_STYLE);
@@ -283,15 +283,7 @@ impl Database {
             .unwrap()
             .set_cell_alignment(CellAlignment::Center);
 
-        let mut stmt = self.conn.prepare(
-            "
-            SELECT c.name, SUM(t.amount), COUNT(t.id) FROM tickets AS t
-                INNER JOIN companies AS c ON c.id = t.id_company
-                GROUP BY c.name
-                ORDER BY sum(t.amount) DESC;
-            ",
-        )?;
-
+        let mut stmt = self.conn.prepare("SELECT * FROM companies_summary")?;
         let mut rows = stmt.query(params![])?;
 
         while let Some(row) = rows.next()? {
@@ -309,7 +301,7 @@ impl Database {
         Ok(table)
     }
 
-    pub fn detail_tickets(self: &Self) -> Result<Table> {
+    pub fn summary_tickets(self: &Self) -> Result<Table> {
         let mut table = Table::new();
 
         table.load_style(TABLE_STYLE);
@@ -338,14 +330,7 @@ impl Database {
             .unwrap()
             .set_cell_alignment(CellAlignment::Center);
 
-        let mut stmt = self.conn.prepare(
-            "
-            SELECT t.amount, c.name, COUNT(t.id) FROM tickets AS t
-                INNER JOIN companies AS c ON c.id = t.id_company
-                GROUP BY t.amount, c.name ORDER BY COUNT(t.id) DESC
-            ",
-        )?;
-
+        let mut stmt = self.conn.prepare("SELECT * FROM tickets_summary;")?;
         let mut rows = stmt.query(params![])?;
 
         while let Some(row) = rows.next()? {

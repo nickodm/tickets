@@ -168,11 +168,11 @@ fn main() -> Result<()> {
             }
 
             cprintln!("<blue,s>======= COMPANIES =======</>");
-            println!("{}", db.pivot_companies()?);
+            println!("{}", db.summary_companies()?);
 
             if detailed {
                 cprintln!("<blue,s>======== DETAILS ========</>");
-                println!("{}", db.detail_tickets()?);
+                println!("{}", db.summary_tickets()?);
             }
         }
 
