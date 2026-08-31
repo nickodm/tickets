@@ -10,7 +10,7 @@ const STYLES: Styles = Styles::styled()
     .literal(AnsiColor::Green.on_default());
 
 #[derive(Parser)]
-#[command(name = "boletos", version = "0.1.0", styles = STYLES)]
+#[command(name = "tickets", version = "0.1.1", styles = STYLES)]
 pub struct Cli {
     /// Specify the database's path.
     #[arg(long)]
