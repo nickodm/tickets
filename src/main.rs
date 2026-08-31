@@ -158,9 +158,9 @@ fn main() -> Result<()> {
             if goal != 0 {
                 cprintln!("<blue,s>========= GOAL ==========</>");
                 cprintln!("<green,s>Goal         :</> ${}", goal.separate_with_dots());
-                let difference = (goal - total) as isize;
+                let difference: isize = goal as isize - total as isize;
                 cprintln!(
-                    "<green,s>Difference   :</> ${}",
+                    "<green,s>Difference   :</> ${:>7}",
                     difference.separate_with_dots()
                 );
                 let percent: f64 = (total as f64 / goal as f64) * 100f64;
