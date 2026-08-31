@@ -5,6 +5,7 @@ use clap::Parser;
 use color_print::cprintln;
 use core::{cli::*, *};
 use directories::ProjectDirs;
+use flate2::{Compression, write::GzEncoder};
 use std::{fs, io::Write};
 use thousands::Separable;
 
@@ -77,9 +78,8 @@ fn main() -> Result<()> {
             company_name,
             times,
         } => {
-            let company = match db.get_company_by_name(company_name)? {
-                Some(company) => company,
-                None => bail!("That company is not in the database."),
+            let Some(company) = db.get_company_by_name(company_name)? else {
+                bail!("That company is not in the database.");
             };
 
             if times > 1 {
@@ -232,12 +232,33 @@ fn main() -> Result<()> {
         }
 
         Commands::Backup { output } => {
+            let mut output = output.clone();
+
+            if output.is_dir() {
+                output.push("tickets.db.gz");
+            } else {
+                let has_valid_extension = output
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.ends_with(".db.gz"));
+
+                if !has_valid_extension {
+                    output.add_extension("db.gz");
+                }
+            }
+
             if output.try_exists()? && !confirm("Output file already exists. override?")? {
                 println!("Aborted.");
                 return Ok(());
             }
 
-            fs::copy(&path, &output)?;
+            {
+                let file = fs::File::create(&output)?;
+                let mut gz = GzEncoder::new(file, Compression::best());
+                let raw = fs::read(&path)?;
+                gz.write_all(&raw)?;
+            }
+
             println!("Database backed up to '{}'.", output.display());
         }
     };
