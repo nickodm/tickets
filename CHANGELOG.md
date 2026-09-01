@@ -1,6 +1,10 @@
 
 # CHANGELOG
 
+## v0.2.1
+
+- Added rusqlite3 bundled feature, so the SQLite engine is always included with the executable and doesn't need dynamic libraries.
+
 ## v0.2.0
 
 - Added gzip compression to backup files.

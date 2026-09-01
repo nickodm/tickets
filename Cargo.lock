@@ -418,6 +418,7 @@ version = "0.38.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1d20bef17f513b9b3004532233187769cd072d790971f4e4da0e346eb6401e8"
 dependencies = [
+ "cc",
  "pkg-config",
  "vcpkg",
 ]
@@ -760,7 +761,7 @@ checksum = "3bf63baf9f5039dadc247375c29eb13706706cfde997d0330d05aa63a77d8820"
 
 [[package]]
 name = "tickets"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "clap",
