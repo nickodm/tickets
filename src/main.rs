@@ -47,7 +47,7 @@ fn main() -> Result<()> {
     let data_dir = dirs.data_dir();
 
     if !config_dir.try_exists()? {
-        fs::create_dir(config_dir)?;
+        fs::create_dir_all(config_dir)?;
     }
 
     let conf = config::read_config(config_dir.join("config.toml"))
@@ -67,7 +67,7 @@ fn main() -> Result<()> {
         }
         None => {
             if !data_dir.try_exists()? {
-                fs::create_dir(data_dir)?;
+                fs::create_dir_all(data_dir)?;
             }
 
             data_dir.join("tickets.db")
