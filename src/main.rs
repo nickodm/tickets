@@ -151,6 +151,11 @@ fn main() -> Result<()> {
 
         Commands::Summary { detailed } => {
             let count = db.count_tickets()?;
+
+            if count == 0 {
+                bail!("Database is empty.");
+            }
+
             let total = db.get_total_amount()?;
 
             cprintln!("<blue,s>======== GENERAL ========</>");
