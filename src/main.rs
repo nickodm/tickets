@@ -233,6 +233,7 @@ fn main() -> Result<()> {
 
         Commands::Drop => {
             if confirm("Are you sure you want to DROP the database?")? {
+                drop(db);
                 fs::remove_file(&path).context("Unable to drop the database.")?;
                 println!("Dropped database.");
             } else {
