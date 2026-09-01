@@ -5,8 +5,12 @@ use clap::Parser;
 use color_print::cprintln;
 use core::{cli::*, *};
 use directories::ProjectDirs;
-use flate2::{Compression, write::GzEncoder};
-use std::{fs, io::Write};
+use flate2::{Compression, read::GzDecoder, write::GzEncoder};
+use std::{
+    fs,
+    io::{Read, Seek, SeekFrom, Write},
+};
+use tempfile::NamedTempFile;
 use thousands::Separable;
 
 /// Ask the user for confirmation before doing something.
@@ -260,6 +264,70 @@ fn main() -> Result<()> {
             }
 
             println!("Database backed up to '{}'.", output.display());
+        }
+
+        Commands::Restore { input } => {
+            if !input.try_exists()? {
+                bail!("Path doesn't exists.");
+            } else if input.is_dir() {
+                bail!("Path is not a file.");
+            }
+
+            let metadata = fs::metadata(&input)?;
+            let mut buffer = Vec::with_capacity(metadata.len() as usize);
+
+            // Check gzip magic number and decompress
+            {
+                let mut file = fs::File::open(&input)?;
+                let mut gz_magic = [0u8; 2];
+
+                file.read(&mut gz_magic)?;
+
+                if gz_magic != [0x1f, 0x8b] {
+                    bail!("File is not a valid gzip file.");
+                }
+
+                file.seek(SeekFrom::Start(0))?;
+
+                let mut gz = GzDecoder::new(file);
+                gz.read_to_end(&mut buffer)?;
+            }
+
+            // Check SQLite magic number
+            if buffer.len() < 16 || &buffer[..16] != b"SQLite format 3\0" {
+                bail!("File is not a valid SQLite database.");
+            }
+
+            let mut tmp = NamedTempFile::new()?;
+            tmp.write(&buffer)?;
+            tmp.seek(SeekFrom::Start(0))?;
+
+            let conn = rusqlite::Connection::open(tmp.path())?;
+
+            let status: String = conn.query_row("PRAGMA integrity_check", [], |row| row.get(0))?;
+
+            if status != "ok" {
+                bail!("Database integrity test failed.");
+            }
+
+            drop(conn);
+            drop(tmp);
+
+            if path.try_exists()? && !confirm("Database will be replaced by this backup. Proceed?")?
+            {
+                println!("Aborted");
+                return Ok(());
+            }
+
+            drop(db);
+
+            let old = path.with_added_extension("old");
+
+            fs::rename(&path, &old)?;
+            fs::write(&path, buffer)?;
+
+            println!("Backup successfully restored.");
+            println!("Old version was moved to '{}'.", old.display());
         }
     };
 

@@ -13,5 +13,6 @@ directories = "6.0.0"
 flate2 = "1.1.10"
 rusqlite = "0.40.2"
 serde = { version = "1.0.229", features = ["derive"] }
+tempfile = "3.27.0"
 thousands = "0.2.0"
 toml = "1.1.4"

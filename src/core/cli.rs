@@ -70,10 +70,16 @@ pub enum Commands {
     /// Drop the database. CANNOT BE UNDONE!
     Drop,
 
-    /// Create a backup of the database.
+    /// Create a database's backup.
     Backup {
         /// Path to write the output file
         output: PathBuf,
+    },
+
+    /// Restore a database's backup.
+    Restore {
+        /// Path of the backup file.
+        input: PathBuf,
     },
 }
 
