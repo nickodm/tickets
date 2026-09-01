@@ -28,7 +28,7 @@ fn confirm<S: std::fmt::Display>(prompt: S) -> Result<bool> {
     print!("{} [y/n]: ", prompt);
     std::io::stdout().flush()?;
     stdin.read_line(&mut answer)?;
-    let answer = answer.replace("\n", "").to_lowercase();
+    let answer = answer.replace("\n", "").replace("\r", "").to_lowercase();
 
     match answer.as_str() {
         "y" | "yes" => Ok(true),
